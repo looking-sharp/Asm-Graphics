@@ -131,7 +131,7 @@ setup_window:
     mov     rdx, 24             ; depth
     mov     rcx, 2              ; ZPixmap
     xor     r8, r8              ; offset
-    mov     r9, rax             ; data = NULL
+    mov     r9, rax
 
     ; 7th-10th args on stack: width, height, bitmap_pad, bytes_per_line
     ; align stack to 16 bytes before call
@@ -152,7 +152,16 @@ setup_window:
 
     ret
 
-
+; ###############################################
+; # get_mouse_position                          #
+; #                                             #
+; # Parameters:                                 #
+; #     rdi: pointer to x pos                   #
+; #     rsi: pointer to y pos                   #
+; #     rdx: pointer to mask                    #
+; #                                             #
+; # Returns: eax (if mouse is on screen)        #
+; ###############################################
 get_mouse_position:
     mov     r10, rdi        ; x_out
     mov     r11, rsi        ; y_out
@@ -196,7 +205,7 @@ get_mouse_position:
     cmp     eax, ebx
     jg      get_mouse_position.invalid_win
 
-.verify_win_y
+.verify_win_y:
     mov     eax, [win_y]
     cmp     eax, 0
     jl      get_mouse_position.invalid_win
@@ -232,6 +241,10 @@ get_mouse_position:
 ; #                                             #
 ; ###############################################
 update_window:
+    push    rbp
+    mov     rbp, rsp
+    and     rsp, -16 
+
     mov     rdi, [disp]         ; Display*
     mov     rsi, [window]       ; Drawable
     mov     rdx, [gc]           ; GC
@@ -239,17 +252,21 @@ update_window:
     xor     r8, r8              ; src_x = 0
     xor     r9, r9              ; src_y = 0
     ; 6th-9th args on stack: width, height, dest_x, dest_y
+    sub     rsp, 32
     mov     rax, [y_res]
-    push    rax ; height
+    mov     [rsp + 24], rax
     mov     rax, [x_res]
-    push    rax   ; width
+    mov     [rsp + 16], rax
     xor     rax, rax
-    push    rax ; dest_y = 0
-    push    rax ; dest_x = 0
+    mov     [rsp + 8], rax
+    mov     [rsp + 0], rax
     call    XPutImage
     add     rsp, 32
     mov     rdi, [disp]
     call    XFlush
+
+    mov     rsp, rbp
+    pop     rbp
     ret
 
 ; ###############################################
