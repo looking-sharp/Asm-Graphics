@@ -35,6 +35,10 @@ global	exit, exit0, strlen, itoa, atoi, endl, printstr, printint, readstr, readi
     %error Invalid Output format __OUTPUT_FORMAT__. Check "-f" flag
 %endif
 
+extern printf
+extern fflush
+extern stdout
+
 section .text
 
 ;*********************************************************************
@@ -332,7 +336,35 @@ readint:
     ret
 ;*********************************************************************	
 
+
+printflt:
+    ; xmm0 = float/double to print
+    ; System V AMD64 calling convention:
+    ; printf first float argument goes in xmm0, format string in rdi
+
+    mov     rdi, fmt_float
+    mov     rax, 1           ; tells printf how many SSE args are passed
+    call    printf
+    xor     rdi, rdi
+    call    fflush
+    ret
+
+; rdi: pointer to vector
+print_vector:
+    movsd   xmm0, [rdi+0]
+    movsd   xmm1, [rdi+8]
+    movsd   xmm2, [rdi+16]
+    mov     rdi, fmt_vctr
+    mov     rax, 3
+    call    printf
+    xor     rdi, rdi
+    call    fflush
+    ret     
+
+
 section .data 
-endl.str: db LINEFEED, 0
+    endl.str:   db LINEFEED, 0
+    fmt_float   db "%.2f", 0
+    fmt_vctr    db "(%.2f, %.2f, %.2f)" 
 
 %endif
