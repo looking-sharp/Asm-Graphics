@@ -359,12 +359,12 @@ print_vector:
     call    printf
     xor     rdi, rdi
     call    fflush
-    ret     
+    ret    
 
 
 section .data 
     endl.str:   db LINEFEED, 0
     fmt_float   db "%.2f", 0
-    fmt_vctr    db "(%.2f, %.2f, %.2f)" 
+    fmt_vctr    db "(%.2f, %.2f, %.2f)",0
 
 %endif
