@@ -1,5 +1,5 @@
-%include '../../../util/util.asm'
-%include '../../../render/visual_lib.asm'
+%include 'util/util.asm'
+%include 'render/visual_lib.asm'
 
 global main
 section .text

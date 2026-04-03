@@ -4,7 +4,7 @@ syntax="intel"
 name="dot_and_cross"
 
 #compile
-nasm -f elf64 $name.asm -o $name.o
+nasm -f elf64 $name.asm -o $name.o -I ../../../lib
 #link
 gcc -no-pie -m64 -o $name $name.o -lX11
 #run

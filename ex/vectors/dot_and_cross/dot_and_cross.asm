@@ -1,8 +1,8 @@
-%include '../../../util/util.asm'
-%include '../../../vector/vector_lib.asm'
-%include '../../../trig/sine.asm'
-%include '../../../trig/cos.asm'
-%include '../../../trig/tan.asm'
+%include '/util/util.asm'
+%include '/vector/vector_lib.asm'
+%include '/trig/sine.asm'
+%include '/trig/cos.asm'
+%include '/trig/tan.asm'
 
 global main
 section .text
