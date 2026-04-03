@@ -1,8 +1,9 @@
-%include '../../../util/util.asm'
-%include '../../../vector/vector_lib.asm'
-%include '../../../trig/sine.asm'
-%include '../../../trig/cos.asm'
-%include '../../../trig/tan.asm'
+%include '/util/util.asm'
+%include '/vector/vector_lib.asm'
+%include '/vector/matrix_lib.asm'
+%include '/trig/sine.asm'
+%include '/trig/cos.asm'
+%include '/trig/tan.asm'
 
 global main
 section .text
@@ -97,3 +98,4 @@ section .bss
     forward:  resb Vec3_size
     right:    resb Vec3_size    
     cam_up:   resb Vec3_size
+    rot_mtx   resb Mat3_size
