@@ -33,3 +33,4 @@ gcc -no-pie -m64 -o $2 $2.o -lX11
 ./$2
 #cleanup
 rm -rf $2.o
+rm -rf $2
