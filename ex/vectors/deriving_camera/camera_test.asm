@@ -109,7 +109,7 @@ main:
     call    exit0
 
 section .data
-    pos:        dq 5.0, 2.0, 0.0    ; camera at
+    pos:        dq 0.0, 3.2, 5.0    ; camera at
     looking:    dq 0.0, 0.0, 0.0    ; looking at 
     global_up:  dq 0.0, 1.0, 0.0    ; which was is 'up'
     
