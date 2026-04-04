@@ -2,9 +2,11 @@
 %define MATRIX_LIB_ASM
 
 %include 'vector/vector_lib.asm'
+%include 'trig/sine.asm'
+%include 'trig/cos.asm'
 
 section .text
-global Mat3, Matrix3_multiply_vector, Matrix3_build_rotation_matrix
+global Mat3, Matrix3_multiply_vector, Matrix3_build_cam_rotation_matrix
 
 struc Mat3
   .c1 resb Vec3_size
@@ -44,7 +46,7 @@ Matrix3_multiply_vector:
     ret
 
 ; ###############################################
-; # Matrix3_multiply_vector                     #
+; # Matrix3_build_cam_rotation_matrix           #
 ; #                                             #
 ; # Parameters:                                 #
 ; #     rdi: cam location vector pointer        #
@@ -53,7 +55,7 @@ Matrix3_multiply_vector:
 ; #     rdx: return matrix pointer              #
 ; #                                             #
 ; ###############################################
-Matrix3_build_rotation_matrix:
+Matrix3_build_cam_rotation_matrix:
     push    r8
     push    r9
     push    r10
@@ -130,8 +132,94 @@ Matrix3_build_rotation_matrix:
     pop     r8
     ret
 
+; rdi: axis (0:x 1:y 2:z)
+; rsi: matrix pointer
+; Xmm0: theta (in radians)
+Matrix3_get_rotation_matrix:
+    push    rbp
+    mov     rbp, rsp
 
+    sub     rsp, 160
+    ;       [rbp - 0]: sin
+    ;       [rbp - 64]: cos
+    movsd   xmm1, xmm0  ; save origional theta
+    mov     rdx, rdi    ; save axis choice
 
+    mov     rdi, [cordic_itr]
+    movsd   xmm0, xmm1
+    call    sine_cordic
+    movsd   [rbp], xmm0
 
+    mov     rdi, [cordic_itr]
+    movsd   xmm0, xmm1
+    call    cosine_cordic
+    movsd   [rbp-64], xmm0
+
+    movsd   xmm2, [rbp-64]  ; cos
+    movsd   xmm3, [rbp-0]   ; sin
+    movsd   xmm0, [zero]
+    movsd   xmm1, [one]
+    movsd   xmm5, xmm3
+    movsd   xmm6, [neg_mask]
+    xorpd   xmm5, xmm6      ; -sin
+
+    mov     rax, rdx
+    cmp     rax, 1
+    jl      Matrix3_get_rotation_matrix.x_axis
+    jg      Matrix3_get_rotation_matrix.z_axis
+    je      Matrix3_get_rotation_matrix.y_axis
+
+.x_axis:
+    ; |1    0     0|
+    movsd   [rsi + Mat3.c1 + Vec3.x], xmm1
+    movsd   [rsi + Mat3.c1 + Vec3.y], xmm0
+    movsd   [rsi + Mat3.c1 + Vec3.z], xmm0
+    ; |0    cos -sin|
+    movsd   [rsi + Mat3.c2 + Vec3.x], xmm0
+    movsd   [rsi + Mat3.c2 + Vec3.y], xmm2
+    movsd   [rsi + Mat3.c2 + Vec3.z], xmm5
+    ; |0    sin  cos|
+    movsd   [rsi + Mat3.c3 + Vec3.x], xmm0
+    movsd   [rsi + Mat3.c3 + Vec3.y], xmm3
+    movsd   [rsi + Mat3.c3 + Vec3.z], xmm2
+    jmp     Matrix3_get_rotation_matrix.return_func
+.y_axis:
+    ; |cos  0   sin|
+    movsd   [rsi + Mat3.c1 + Vec3.x], xmm2
+    movsd   [rsi + Mat3.c1 + Vec3.y], xmm0
+    movsd   [rsi + Mat3.c1 + Vec3.z], xmm3
+    ; |0    1     0|
+    movsd   [rsi + Mat3.c2 + Vec3.x], xmm0
+    movsd   [rsi + Mat3.c2 + Vec3.y], xmm1
+    movsd   [rsi + Mat3.c2 + Vec3.z], xmm0
+    ; |-sin 0   cos|
+    movsd   [rsi + Mat3.c3 + Vec3.x], xmm5
+    movsd   [rsi + Mat3.c3 + Vec3.y], xmm0
+    movsd   [rsi + Mat3.c3 + Vec3.z], xmm2
+    jmp     Matrix3_get_rotation_matrix.return_func
+.z_axis:
+    ; |cos  -sin  0|
+    movsd   [rsi + Mat3.c1 + Vec3.x], xmm2
+    movsd   [rsi + Mat3.c1 + Vec3.y], xmm5
+    movsd   [rsi + Mat3.c1 + Vec3.z], xmm0
+    ; |sin  cos   0|
+    movsd   [rsi + Mat3.c2 + Vec3.x], xmm3
+    movsd   [rsi + Mat3.c2 + Vec3.y], xmm2
+    movsd   [rsi + Mat3.c2 + Vec3.z], xmm0
+    ; |0    0     1|
+    movsd   [rsi + Mat3.c3 + Vec3.x], xmm0
+    movsd   [rsi + Mat3.c3 + Vec3.y], xmm0
+    movsd   [rsi + Mat3.c3 + Vec3.z], xmm1
+    jmp     Matrix3_get_rotation_matrix.return_func
+.return_func
+    mov     rsp, rbp
+    pop     rbp
+    ret
 
 %endif
+
+
+section .data
+    cordic_itr: dq 8
+    one: dq 1.0
+    zero: dq 0
