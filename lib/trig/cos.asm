@@ -8,6 +8,8 @@
 ;	Returns approximation of cosine({xmm0}) in {xmm0} using CORDIC approx with 
 ;	{rdi} iterations.
 
+section .text
+
 align 64
 cosine_cordic:
 

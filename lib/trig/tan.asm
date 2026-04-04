@@ -4,6 +4,8 @@
 %ifndef TANGENT
 %define TANGENT
 
+section .text
+
 tangent:
 ; double {xmm0} tangent(double {xmm0}, double {xmm1});
 ; Computes partial fraction expansion of tangent({xmm0})
