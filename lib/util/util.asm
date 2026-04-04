@@ -351,6 +351,10 @@ printflt:
 
 ; rdi: pointer to vector
 print_vector:
+    push    rbp
+    mov     rbp, rsp
+    and     rsp, -16 
+
     movsd   xmm0, [rdi+0]
     movsd   xmm1, [rdi+8]
     movsd   xmm2, [rdi+16]
@@ -359,7 +363,10 @@ print_vector:
     call    printf
     xor     rdi, rdi
     call    fflush
-    ret    
+
+    mov     rsp, rbp
+    pop     rbp
+    ret
 
 
 section .data 
