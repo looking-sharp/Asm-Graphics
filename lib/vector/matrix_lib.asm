@@ -211,15 +211,15 @@ Matrix3_get_rotation_matrix:
     movsd   [rsi + Mat3.c3 + Vec3.y], xmm0
     movsd   [rsi + Mat3.c3 + Vec3.z], xmm1
     jmp     Matrix3_get_rotation_matrix.return_func
-.return_func
+.return_func:
     mov     rsp, rbp
     pop     rbp
     ret
-
-%endif
-
 
 section .data
     cordic_itr: dq 8
     one: dq 1.0
     zero: dq 0
+
+
+%endif
