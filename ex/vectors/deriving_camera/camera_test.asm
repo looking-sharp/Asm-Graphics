@@ -36,8 +36,8 @@ main:
     call    endl
 
     ; calc right vector
-    mov     rdi, global_up
-    mov     rsi, forward
+    mov     rdi, forward
+    mov     rsi, global_up
     mov     rdx, right
     call    vector3_cross_product
     mov     rdi, right
@@ -61,18 +61,46 @@ main:
     call    print_vector
     call    endl
 
-
-    mov     rdi, msg6
-    call    printstr
-    call    endl
-    mov     rdi, right
-    call    print_vector
-    call    endl
-    mov     rdi, cam_up
-    call    print_vector
-    call    endl
+    ; build rotation matrix
+    mov     rax, right
+    mov     [rot_mtx + Mat3.c1], rax
+    mov     rax, cam_up
+    mov     [rot_mtx + Mat3.c2], rax
     mov     rdi, forward
     call    vector3_negate
+    mov     rax, forward
+    mov     [rot_mtx + Mat3.c3], rax
+
+    ; print result
+    mov     rdi, [rot_mtx + Mat3.c1]
+    call    print_vector
+    call    endl
+    mov     rdi, [rot_mtx + Mat3.c2]
+    call    print_vector
+    call    endl
+    mov     rdi, [rot_mtx + Mat3.c3]
+    call    print_vector
+    call    endl
+
+    mov     rdi, ex_point
+    mov     rsi, pos
+    mov     rdx, temp
+    call    vector3_subtract
+
+    mov     rdi, msg7
+    call    printstr
+    mov     rdi, temp
+    call    print_vector
+    call    endl
+
+    mov     rdi, rot_mtx
+    mov     rsi, temp
+    mov     rdx, trans
+    call    Matrix3_multiply_vector
+
+    mov     rdi, msg8
+    call    printstr
+    mov     rdi, trans
     call    print_vector
     call    endl
 
@@ -84,6 +112,8 @@ section .data
     pos:        dq 5.0, 2.0, 0.0    ; camera at
     looking:    dq 0.0, 0.0, 0.0    ; looking at 
     global_up:  dq 0.0, 1.0, 0.0    ; which was is 'up'
+    
+    ex_point:   dq 0.0, 0.0, 1.0
 
     msg1:       db "Position:   ", 0
     msg2:       db "Looking at: ", 0
@@ -91,7 +121,8 @@ section .data
     msg4:       db "Right:      ", 0
     msg5:       db "Camera Up:  ", 0
     msg6:       db "Rotation Matrix:", 0
-
+    msg7:       db "Translated point: ", 0
+    msg8:       db "point relative camera: ", 0
 
 
 section .bss
@@ -99,3 +130,5 @@ section .bss
     right:    resb Vec3_size    
     cam_up:   resb Vec3_size
     rot_mtx   resb Mat3_size
+    temp      resb Vec3_size
+    trans     resb Vec3_size
