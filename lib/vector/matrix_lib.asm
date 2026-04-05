@@ -4,6 +4,7 @@
 %include 'vector/vector_lib.asm'
 %include 'trig/sine.asm'
 %include 'trig/cos.asm'
+%include 'util/util.asm'
 
 section .text
 global Mat3, Matrix3_multiply_vector, Matrix3_build_cam_rotation_matrix
@@ -74,16 +75,16 @@ Matrix3_build_cam_rotation_matrix:
     ; calc forward vector
     mov     rdi, r8
     mov     rsi, r9
-    mov     rdx, [rbp]
+    lea     rdx, [rbp-32]
     call    vector3_subtract
 
-    mov     rdi, [rbp]
+    lea     rdi, [rbp-32]
     call    vector3_to_unit    
-    mov     rdi, [rbp]
+    lea     rdi, [rbp-32]
     call    vector3_negate
 
     ; copy to matrix
-    mov     rdi, [rbp]
+    lea     rdi, [rbp-32]
     movsd   xmm0, [rdi + Vec3.x]
     movsd   [r11 + Mat3.c3 + Vec3.x], xmm0
     movsd   xmm0, [rdi + Vec3.y]
@@ -94,13 +95,13 @@ Matrix3_build_cam_rotation_matrix:
     ; calc right vector
     mov     rdi, r10
     lea     rsi, [r11 + Mat3.c3]
-    mov     rdx, [rbp]
+    lea     rdx, [rbp-32]
     call    vector3_cross_product
-    mov     rdi, [rbp]
+    lea     rdi, [rbp-32]
     call    vector3_to_unit
 
     ; copy to matrix
-    mov     rdi, [rbp]
+    lea     rdi, [rbp-32]
     movsd   xmm0, [rdi + Vec3.x]
     movsd   [r11 + Mat3.c1 + Vec3.x], xmm0
     movsd   xmm0, [rdi + Vec3.y]
@@ -111,11 +112,11 @@ Matrix3_build_cam_rotation_matrix:
     ; calc camera up (flipped from what it should be cause forward was negated)
     lea     rdi, [r11 + Mat3.c1]
     lea     rsi, [r11 + Mat3.c3]
-    mov     rdx, [rbp]
+    lea     rdx, [rbp-32]
     call    vector3_cross_product
     
     ; copy to matrix
-    mov     rdi, [rbp]
+    lea     rdi, [rbp-32]
     movsd   xmm0, [rdi + Vec3.x]
     movsd   [r11 + Mat3.c2 + Vec3.x], xmm0
     movsd   xmm0, [rdi + Vec3.y]
@@ -140,8 +141,8 @@ Matrix3_get_rotation_matrix:
     mov     rbp, rsp
 
     sub     rsp, 160
-    ;       [rbp - 0]: sin
-    ;       [rbp - 64]: cos
+    ;       [rbp - 64]: sin
+    ;       [rbp - 128]: cos
     movsd   xmm1, xmm0  ; save origional theta
     mov     rdx, rdi    ; save axis choice
 
@@ -153,10 +154,10 @@ Matrix3_get_rotation_matrix:
     mov     rdi, [cordic_itr]
     movsd   xmm0, xmm1
     call    cosine_cordic
-    movsd   [rbp-64], xmm0
+    movsd   [rbp-128], xmm0
 
-    movsd   xmm2, [rbp-64]  ; cos
-    movsd   xmm3, [rbp-0]   ; sin
+    movsd   xmm2, [rbp-128]  ; cos
+    movsd   xmm3, [rbp-64]   ; sin
     movsd   xmm0, [zero]
     movsd   xmm1, [one]
     movsd   xmm5, xmm3

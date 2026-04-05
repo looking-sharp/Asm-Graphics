@@ -10,6 +10,11 @@ struc Vec3
   .z resq 1
 endstruc
 
+struc Vec2
+  .x resq 1
+  .y resq 1
+endstruc
+
 ; ###############################################
 ; # vector3_dot_product                         #
 ; #                                             #
